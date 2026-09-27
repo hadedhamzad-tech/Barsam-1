@@ -1,0 +1,6 @@
+{
+  "name": "برسام و فیزیک",
+  "description": "برنامه جامع برسام و فیزیک؛ آزمایشگاه تعاملی و حل‌المسائل گام‌به‌گام فیزیک دبیرستان به کوشش برسام",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
