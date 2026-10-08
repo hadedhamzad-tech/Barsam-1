@@ -25,3 +25,27 @@ data class QuizScoreEntity(
     val scorePercentage: Int,
     val timestamp: Long = System.currentTimeMillis()
 )
+
+@Entity(tableName = "achievements")
+data class AchievementEntity(
+    @PrimaryKey
+    val id: String,
+    val title: String,
+    val description: String,
+    val category: String, // آزمایشگاه، آزمون، حل مسئله
+    val iconEmoji: String,
+    val points: Int,
+    val isUnlocked: Boolean = false,
+    val unlockedAt: Long = 0L
+)
+
+@Entity(tableName = "user_progress")
+data class UserProgressEntity(
+    @PrimaryKey
+    val id: Int = 1,
+    val totalPoints: Int = 0,
+    val levelTitle: String = "دانش‌آموز کنجکاو",
+    val simulationsCompleted: Int = 0,
+    val quizzesCompleted: Int = 0,
+    val problemsSaved: Int = 0
+)

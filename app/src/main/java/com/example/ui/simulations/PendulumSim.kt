@@ -19,8 +19,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.ui.theme.*
+import com.example.util.PersianUtils
 import kotlinx.coroutines.delay
 import kotlin.math.*
+import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.unit.LayoutDirection
 
 @Composable
 fun PendulumSim() {
@@ -168,7 +171,7 @@ fun PendulumSim() {
                 color = Color(0xFF1E293B).copy(alpha = 0.85f)
             ) {
                 Text(
-                    text = "زاویه: ${"%.1f".format(currentAngleDeg)}°",
+                    text = "زاویه: ${PersianUtils.formatNumber(currentAngleDeg, 1)}°",
                     color = PhysicsCyan,
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Bold,
@@ -187,7 +190,7 @@ fun PendulumSim() {
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Text(
-                    "نمودار پایستگی و تبدیل انرژی (Joule):",
+                    "نمودار پایستگی و تبدیل انرژی (ژول):",
                     fontSize = 13.sp,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurface
@@ -202,7 +205,7 @@ fun PendulumSim() {
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         Text("انرژی جنبشی (K):", fontSize = 12.sp)
-                        Text("${"%.2f".format(kineticEnergy)} J", color = PhysicsGreen, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                        Text("${PersianUtils.formatNumber(kineticEnergy, 2)} ژول", color = PhysicsGreen, fontWeight = FontWeight.Bold, fontSize = 12.sp)
                     }
                     LinearProgressIndicator(
                         progress = { kineticFraction },
@@ -222,7 +225,7 @@ fun PendulumSim() {
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         Text("انرژی پتانسیل گرانشی (U):", fontSize = 12.sp)
-                        Text("${"%.2f".format(potentialEnergy)} J", color = PhysicsAmber, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                        Text("${PersianUtils.formatNumber(potentialEnergy, 2)} ژول", color = PhysicsAmber, fontWeight = FontWeight.Bold, fontSize = 12.sp)
                     }
                     LinearProgressIndicator(
                         progress = { potentialFraction },
@@ -265,29 +268,29 @@ fun PendulumSim() {
             }
         }
 
-        // Metrics: Period, Frequency, Length
+        // Metrics: Period, Frequency, Velocity
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             MetricCard(
                 title = "دوره تناوب (T)",
-                value = "${"%.2f".format(period)} ثانیه",
-                formula = "2π√(L/g)",
+                value = "${PersianUtils.formatNumber(period, 2)} ثانیه",
+                formula = "T = 2π√(L/g)",
                 color = PhysicsCyan,
                 modifier = Modifier.weight(1f)
             )
             MetricCard(
                 title = "بسامد (f)",
-                value = "${"%.2f".format(frequency)} Hz",
-                formula = "1 / T",
+                value = "${PersianUtils.formatNumber(frequency, 2)} هرتز",
+                formula = "f = 1 / T",
                 color = PhysicsPurple,
                 modifier = Modifier.weight(1f)
             )
             MetricCard(
                 title = "تندی لحظه‌ای",
-                value = "${"%.2f".format(abs(currentVelocity))} m/s",
-                formula = "√(2g·Δh)",
+                value = "${PersianUtils.formatNumber(abs(currentVelocity), 2)} m/s",
+                formula = "v = √(2g·Δh)",
                 color = PhysicsGreen,
                 modifier = Modifier.weight(1f)
             )
@@ -305,7 +308,7 @@ fun PendulumSim() {
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Text("طول نخ (L):", fontSize = 13.sp)
-                    Text("${"%.2f".format(lengthMeters)} متر", color = PhysicsCyan, fontWeight = FontWeight.Bold)
+                    Text("${PersianUtils.formatNumber(lengthMeters, 2)} متر", color = PhysicsCyan, fontWeight = FontWeight.Bold)
                 }
                 Slider(
                     value = lengthMeters,
@@ -320,7 +323,7 @@ fun PendulumSim() {
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Text("جرم گلوله (m):", fontSize = 13.sp)
-                    Text("${"%.1f".format(massKg)} kg", color = PhysicsPurple, fontWeight = FontWeight.Bold)
+                    Text("${PersianUtils.formatNumber(massKg, 1)} کیلوگرم", color = PhysicsPurple, fontWeight = FontWeight.Bold)
                 }
                 Slider(
                     value = massKg,

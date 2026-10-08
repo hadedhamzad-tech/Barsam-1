@@ -23,7 +23,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.data.PhysicsData
 import com.example.model.FormulaItem
+import com.example.notification.NotificationSettingsDialog
 import com.example.ui.theme.*
+import com.example.util.LtrMathBox
+import com.example.util.PersianUtils
 
 @Composable
 fun FormulaBookScreen() {
@@ -31,6 +34,7 @@ fun FormulaBookScreen() {
     val grades = listOf("همه پایه‌ها", "پایه دهم", "پایه یازدهم", "پایه دوازدهم")
     var selectedGrade by remember { mutableStateOf("همه پایه‌ها") }
     var expandedFormulaId by remember { mutableStateOf<String?>(null) }
+    var showNotificationSettings by remember { mutableStateOf(false) }
 
     val filteredFormulas = remember(searchQuery, selectedGrade) {
         PhysicsData.formulas.filter { item ->
@@ -44,29 +48,75 @@ fun FormulaBookScreen() {
         }
     }
 
-    LazyColumn(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(12.dp),
-        verticalArrangement = Arrangement.spacedBy(10.dp),
-        contentPadding = PaddingValues(bottom = 24.dp)
-    ) {
-        // Header
-        item {
-            Text(
-                "بانک فرمول‌ها و مفاهیم فیزیک",
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold,
-                color = PhysicsCyan
-            )
-            Text(
-                "مجموعه جامع روابط، یکاهای SI و نکات کنکوری پایه‌های دهم، یازدهم و دوازدهم",
-                fontSize = 12.sp,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
+    Box(modifier = Modifier.fillMaxSize()) {
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(12.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+            contentPadding = PaddingValues(bottom = 24.dp)
+        ) {
+            // Header
+            item {
+                Text(
+                    "بانک فرمول‌ها و مفاهیم فیزیک",
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = PhysicsCyan
+                )
+                Text(
+                    "مجموعه جامع روابط، یکاهای SI و نکات کنکوری پایه‌های دهم، یازدهم و دوازدهم",
+                    fontSize = 12.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
 
-        // Search Bar
+            // Daily Reminder Banner
+            item {
+                Surface(
+                    shape = RoundedCornerShape(12.dp),
+                    color = PhysicsCyan.copy(alpha = 0.1f),
+                    border = androidx.compose.foundation.BorderStroke(1.dp, PhysicsCyan.copy(alpha = 0.35f)),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Row(
+                        modifier = Modifier.padding(12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Text("🔔", fontSize = 20.sp)
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Column {
+                                Text(
+                                    "یادآور روزانه فرمول‌ها و مسائل",
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 12.sp,
+                                    color = PhysicsCyan
+                                )
+                                Text(
+                                    "ارسال خودکار یک فرمول یا چالش کوتاه در روز",
+                                    fontSize = 10.sp,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+                        Button(
+                            onClick = { showNotificationSettings = true },
+                            colors = ButtonDefaults.buttonColors(containerColor = PhysicsCyan),
+                            shape = RoundedCornerShape(8.dp),
+                            contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp)
+                        ) {
+                            Text("تنظیم یادآور", color = DarkBackground, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                        }
+                    }
+                }
+            }
+
+            // Search Bar
         item {
             OutlinedTextField(
                 value = searchQuery,
@@ -95,13 +145,16 @@ fun FormulaBookScreen() {
                 items(grades) { grade ->
                     val isSelected = selectedGrade == grade
                     FilterChip(
+                        modifier = Modifier.wrapContentWidth(),
                         selected = isSelected,
                         onClick = { selectedGrade = grade },
                         label = {
                             Text(
                                 grade,
                                 fontSize = 12.sp,
-                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
+                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                                maxLines = 1,
+                                softWrap = false
                             )
                         },
                         colors = FilterChipDefaults.filterChipColors(
@@ -116,7 +169,7 @@ fun FormulaBookScreen() {
         // Formula Count & Results
         item {
             Text(
-                "تعداد موارد یافت شده: ${filteredFormulas.size}",
+                "تعداد موارد یافت شده: ${PersianUtils.formatInt(filteredFormulas.size)} فرمول",
                 fontSize = 12.sp,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -189,21 +242,8 @@ fun FormulaBookScreen() {
 
                     Spacer(modifier = Modifier.height(8.dp))
 
-                    // Formula Box
-                    Surface(
-                        shape = RoundedCornerShape(10.dp),
-                        color = Color(0xFF0F172A),
-                        border = androidx.compose.foundation.BorderStroke(1.dp, PhysicsCyan.copy(alpha = 0.4f)),
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Text(
-                            text = item.formula,
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = PhysicsCyan,
-                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)
-                        )
-                    }
+                    // Formula Box (Strictly LTR isolated container)
+                    LtrMathBox(formula = item.formula, fontSize = 15)
 
                     // Expanded Details
                     AnimatedVisibility(visible = isExpanded) {
@@ -234,19 +274,38 @@ fun FormulaBookScreen() {
                                         RoundedCornerShape(8.dp)
                                     )
                                     .padding(8.dp),
-                                verticalArrangement = Arrangement.spacedBy(4.dp)
+                                verticalArrangement = Arrangement.spacedBy(6.dp)
                             ) {
                                 item.variables.forEach { variable ->
                                     Row(
                                         modifier = Modifier.fillMaxWidth(),
-                                        horizontalArrangement = Arrangement.SpaceBetween
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.CenterVertically
                                     ) {
-                                        Text(
-                                            "${variable.symbol} : ${variable.name}",
-                                            fontSize = 11.sp,
-                                            fontWeight = FontWeight.SemiBold,
-                                            color = MaterialTheme.colorScheme.onSurface
-                                        )
+                                        Row(
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                                        ) {
+                                            Surface(
+                                                shape = RoundedCornerShape(4.dp),
+                                                color = Color(0xFF0F172A),
+                                                border = androidx.compose.foundation.BorderStroke(1.dp, PhysicsCyan.copy(alpha = 0.3f))
+                                            ) {
+                                                Text(
+                                                    variable.symbol,
+                                                    color = PhysicsCyan,
+                                                    fontSize = 11.sp,
+                                                    fontWeight = FontWeight.Bold,
+                                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                                )
+                                            }
+                                            Text(
+                                                variable.name,
+                                                fontSize = 11.sp,
+                                                fontWeight = FontWeight.SemiBold,
+                                                color = MaterialTheme.colorScheme.onSurface
+                                            )
+                                        }
                                         Text(
                                             variable.unit,
                                             fontSize = 11.sp,
@@ -284,4 +343,9 @@ fun FormulaBookScreen() {
             }
         }
     }
+
+    if (showNotificationSettings) {
+        NotificationSettingsDialog(onDismissRequest = { showNotificationSettings = false })
+    }
+}
 }

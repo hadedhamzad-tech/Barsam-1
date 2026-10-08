@@ -13,6 +13,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import com.example.data.AppDatabase
 import com.example.data.PhysicsRepository
+import com.example.notification.NotificationHelper
 import com.example.ui.MainScreen
 import com.example.ui.theme.PhysicsTheme
 
@@ -21,10 +22,16 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
+        // Initialize local notification channel and reschedule alarms
+        NotificationHelper.createNotificationChannel(this)
+        NotificationHelper.rescheduleAllAlarms(this)
+
         val database = AppDatabase.getDatabase(this)
         val repository = PhysicsRepository(
             problemDao = database.problemDao(),
-            quizDao = database.quizDao()
+            quizDao = database.quizDao(),
+            achievementDao = database.achievementDao(),
+            progressDao = database.progressDao()
         )
 
         setContent {

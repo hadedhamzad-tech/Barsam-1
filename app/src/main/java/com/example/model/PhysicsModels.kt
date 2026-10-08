@@ -33,15 +33,44 @@ data class SolverResult(
     val steps: List<SolverStep>
 )
 
+data class QuizOption(
+    val text: String,
+    val isCorrect: Boolean
+)
+
 data class QuizQuestion(
     val id: Int,
     val grade: String,
     val topic: String,
+    val difficulty: Int = 1, // ۱=پایه، ۲=متوسط، ۳=سخت، ۴=کنکوری
     val question: String,
     val options: List<String>,
     val correctIndex: Int,
     val explanation: String
-)
+) {
+    /**
+     * استاندارد الگوریتم فیشر-یتس (Fisher–Yates shuffle) جهت چیدمان تصادفی و کاملاً متعادل گزینه‌ها.
+     * پاسخ درست با خود شیء QuizOption (فیلد isCorrect) پیگیری می‌شود و وابسته به شماره یا موقعیت نیست.
+     * سازوکار ضدتوالی طبق الزامات نسخه ۱٫۵ حذف شده و تنها توزیع متعادل ۲۵٪ فیشر-یتس نگهداری شده است.
+     */
+    fun getShuffledOptions(
+        random: kotlin.random.Random = kotlin.random.Random.Default
+    ): List<QuizOption> {
+        val list = options.mapIndexed { index, text ->
+            QuizOption(text = text, isCorrect = (index == correctIndex))
+        }.toMutableList()
+
+        // Fisher-Yates shuffle algorithm
+        for (i in list.size - 1 downTo 1) {
+            val j = random.nextInt(i + 1)
+            val temp = list[i]
+            list[i] = list[j]
+            list[j] = temp
+        }
+
+        return list
+    }
+}
 
 enum class SimulationType(
     val title: String,

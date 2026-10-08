@@ -19,6 +19,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.ui.theme.*
+import com.example.util.PersianUtils
 import kotlinx.coroutines.delay
 import kotlin.math.max
 
@@ -157,7 +158,7 @@ fun NewtonSim() {
                 border = androidx.compose.foundation.BorderStroke(1.dp, if (isMoving) PhysicsGreen else PhysicsAmber)
             ) {
                 Text(
-                    text = if (isMoving) "حرکت شتابدار (F > f_s,max)" else "ساکن (F ≤ f_s,max)",
+                    text = if (isMoving) "حرکت شتابدار" else "ساکن (بدون لغزش)",
                     color = if (isMoving) PhysicsGreen else PhysicsAmber,
                     fontSize = 11.sp,
                     fontWeight = FontWeight.Bold,
@@ -173,7 +174,7 @@ fun NewtonSim() {
                 color = Color(0xFF1E293B).copy(alpha = 0.85f)
             ) {
                 Text(
-                    text = "سرعت: ${"%.1f".format(currentSpeed)} m/s",
+                    text = "سرعت: ${PersianUtils.formatNumber(currentSpeed, 1)} متر بر ثانیه",
                     color = PhysicsCyan,
                     fontSize = 11.sp,
                     fontWeight = FontWeight.Bold,
@@ -220,21 +221,21 @@ fun NewtonSim() {
         ) {
             MetricCard(
                 title = "شتاب حرکت (a)",
-                value = "${"%.2f".format(acceleration)} m/s²",
+                value = "${PersianUtils.formatNumber(acceleration, 2)} m/s²",
                 formula = "a = ΣF / m",
                 color = PhysicsGreen,
                 modifier = Modifier.weight(1f)
             )
             MetricCard(
                 title = "نیروی برآیند (ΣF)",
-                value = "${"%.1f".format(netForce)} N",
+                value = "${PersianUtils.formatNumber(netForce, 1)} نیوتن",
                 formula = "F_app - f_k",
                 color = PhysicsCyan,
                 modifier = Modifier.weight(1f)
             )
             MetricCard(
                 title = "اصطکاک ایستایی بیشینه",
-                value = "${"%.1f".format(maxStaticFriction)} N",
+                value = "${PersianUtils.formatNumber(maxStaticFriction, 1)} نیوتن",
                 formula = "μ_s · mg",
                 color = PhysicsRed,
                 modifier = Modifier.weight(1f)
@@ -253,7 +254,7 @@ fun NewtonSim() {
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Text("نیروی وارد بر جسم (F):", fontSize = 13.sp)
-                    Text("${appliedForce.toInt()} نیوتن (N)", color = PhysicsGreen, fontWeight = FontWeight.Bold)
+                    Text("${PersianUtils.formatInt(appliedForce.toInt())} نیوتن", color = PhysicsGreen, fontWeight = FontWeight.Bold)
                 }
                 Slider(
                     value = appliedForce,
@@ -268,7 +269,7 @@ fun NewtonSim() {
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Text("جرم جسم (m):", fontSize = 13.sp)
-                    Text("${mass.toInt()} کیلوگرم (kg)", color = PhysicsCyan, fontWeight = FontWeight.Bold)
+                    Text("${PersianUtils.formatInt(mass.toInt())} کیلوگرم", color = PhysicsCyan, fontWeight = FontWeight.Bold)
                 }
                 Slider(
                     value = mass,
@@ -283,7 +284,7 @@ fun NewtonSim() {
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Text("ضریب اصطکاک ایستایی (μ_s):", fontSize = 13.sp)
-                    Text("${"%.2f".format(muS)}", color = PhysicsRed, fontWeight = FontWeight.Bold)
+                    Text(PersianUtils.formatNumber(muS, 2), color = PhysicsRed, fontWeight = FontWeight.Bold)
                 }
                 Slider(
                     value = muS,

@@ -6,13 +6,15 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 
 @Database(
-    entities = [SavedProblemEntity::class, QuizScoreEntity::class],
-    version = 1,
+    entities = [SavedProblemEntity::class, QuizScoreEntity::class, AchievementEntity::class, UserProgressEntity::class],
+    version = 2,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
     abstract fun problemDao(): ProblemDao
     abstract fun quizDao(): QuizDao
+    abstract fun achievementDao(): AchievementDao
+    abstract fun progressDao(): ProgressDao
 
     companion object {
         @Volatile

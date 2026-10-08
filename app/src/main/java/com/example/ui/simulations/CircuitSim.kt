@@ -17,6 +17,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.ui.theme.*
+import com.example.util.PersianUtils
 import kotlinx.coroutines.delay
 import kotlin.math.min
 
@@ -195,21 +196,21 @@ fun CircuitSim() {
         ) {
             MetricCard(
                 title = "شدت جریان (I)",
-                value = "${"%.2f".format(current)} A",
+                value = "${PersianUtils.formatNumber(current, 2)} آمپر",
                 formula = "I = V / R",
                 color = PhysicsCyan,
                 modifier = Modifier.weight(1f)
             )
             MetricCard(
                 title = "توان روشنایی (P)",
-                value = "${"%.1f".format(power)} W",
+                value = "${PersianUtils.formatNumber(power, 1)} وات",
                 formula = "P = V · I",
                 color = PhysicsAmber,
                 modifier = Modifier.weight(1f)
             )
             MetricCard(
                 title = "اختلاف پتانسیل",
-                value = "${voltage.toInt()} V",
+                value = "${PersianUtils.formatInt(voltage.toInt())} ولت",
                 formula = "V = I · R",
                 color = PhysicsGreen,
                 modifier = Modifier.weight(1f)
@@ -228,7 +229,7 @@ fun CircuitSim() {
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Text("ولتاژ منبع تغذیه (V):", fontSize = 13.sp)
-                    Text("${voltage.toInt()} ولت", color = PhysicsCyan, fontWeight = FontWeight.Bold)
+                    Text("${PersianUtils.formatInt(voltage.toInt())} ولت", color = PhysicsCyan, fontWeight = FontWeight.Bold)
                 }
                 Slider(
                     value = voltage,
@@ -243,7 +244,7 @@ fun CircuitSim() {
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Text("مقاومت الکتریکی لامپ (R):", fontSize = 13.sp)
-                    Text("${resistance.toInt()} اهم (Ω)", color = PhysicsAmber, fontWeight = FontWeight.Bold)
+                    Text("${PersianUtils.formatInt(resistance.toInt())} اهم (Ω)", color = PhysicsAmber, fontWeight = FontWeight.Bold)
                 }
                 Slider(
                     value = resistance,

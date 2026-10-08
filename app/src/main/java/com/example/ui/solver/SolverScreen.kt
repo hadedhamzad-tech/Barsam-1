@@ -25,6 +25,8 @@ import com.example.data.SavedProblemEntity
 import com.example.model.SolverResult
 import com.example.model.SolverStep
 import com.example.ui.theme.*
+import com.example.util.LtrMathBox
+import com.example.util.PersianUtils
 import kotlinx.coroutines.launch
 import kotlin.math.abs
 import kotlin.math.roundToInt
@@ -97,35 +99,35 @@ fun SolverScreen(
                     title = "حل گام‌به‌گام حرکت با شتاب ثابت",
                     category = "سینماتیک (پایه دوازدهم)",
                     inputSummary = "v₀ = $v0 m/s , a = $a m/s² , t = $t s",
-                    resultSummary = "v = ${"%.2f".format(v)} m/s | Δx = ${"%.2f".format(deltaX)} m",
+                    resultSummary = "سرعت پایانی: ${PersianUtils.formatNumber(v, 2)} متر بر ثانیه | جابه‌جایی: ${PersianUtils.formatNumber(deltaX, 2)} متر",
                     steps = listOf(
                         SolverStep(
                             1,
-                            "مشخص کردن داده‌ها و یکاهای SI",
-                            "سرعت اولیه: v₀ = $v0 m/s\nشتاب ثابت: a = $a m/s²\nزمان حرکت: t = $t s",
-                            "داده‌های اولیه همگی در یکای استاندارد SI هستند.",
-                            "نیازی به تبدیل یکا نیست."
+                            "مشخص کردن داده‌ها و یکاهای استاندارد",
+                            "داده‌های اولیه همگی در یکای استاندارد بین‌المللی هستند و نیازی به تبدیل یکا نیست.",
+                            "v₀ = $v0 m/s , a = $a m/s² , t = $t s",
+                            "داده‌ها آماده جایگذاری در معادلات حرکت هستند."
                         ),
                         SolverStep(
                             2,
-                            "محاسبه سرعت نهایی (v)",
+                            "محاسبه تندی پایانی متحرک",
                             "از رابطه سرعت - زمان برای حرکت با شتاب ثابت استفاده می‌کنیم:",
                             "v = v₀ + a · t",
                             "v = $v0 + ($a × $t) = $v0 + ${a * t} = ${"%.2f".format(v)} m/s"
                         ),
                         SolverStep(
                             3,
-                            "محاسبه جابه‌جایی متحرک (Δx)",
+                            "محاسبه جابه‌جایی متحرک",
                             "از رابطه مکان - زمان در حرکت با شتاب ثابت استفاده می‌کنیم:",
                             "Δx = v₀ · t + ½ a · t²",
-                            "Δx = ($v0 × $t) + ½ × $a × ($t)²\nΔx = ${v0 * t} + ${0.5f * a * t * t} = ${"%.2f".format(deltaX)} متر"
+                            "Δx = ($v0 × $t) + ½ × $a × ($t)² = ${v0 * t} + ${0.5f * a * t * t} = ${"%.2f".format(deltaX)} m"
                         ),
                         SolverStep(
                             4,
-                            "بررسی با رابطه مستقل از زمان (تأیید پاسخ)",
-                            "برای اطمینان، رابطه مستقل از زمان را بررسی می‌کنیم:",
+                            "بررسی با رابطه مستقل از زمان",
+                            "برای اطمینان و صحت‌سنجی، رابطه مستقل از زمان را بررسی می‌کنیم:",
                             "v² - v₀² = 2 · a · Δx",
-                            "${"%.2f".format(v * v)} - ${"%.2f".format(v0 * v0)} = 2 × $a × ${"%.2f".format(deltaX)} ✓ تایید شد"
+                            "${"%.0f".format(v * v)} - ${"%.0f".format(v0 * v0)} = ${"%.0f".format(v * v - v0 * v0)} = 2 × ${"%.1f".format(a)} × ${"%.2f".format(deltaX)}"
                         )
                     )
                 )
@@ -146,26 +148,26 @@ fun SolverScreen(
                     title = "حل دینامیک و قانون دوم نیوتن",
                     category = "دینامیک (پایه دوازدهم)",
                     inputSummary = "m = $m kg , F = $f N , μ_k = $mu",
-                    resultSummary = "شتاب a = ${"%.2f".format(acc)} m/s² | اصطکاک f_k = ${"%.2f".format(fk)} N",
+                    resultSummary = "شتاب: ${PersianUtils.formatNumber(acc, 2)} متر بر مجذور ثانیه | اصطکاک: ${PersianUtils.formatNumber(fk, 2)} نیوتن",
                     steps = listOf(
                         SolverStep(
                             1,
-                            "رسم نیروها و محاسبه نیروی عمودی تکیه‌گاه (F_N)",
-                            "چون جسم در راستای قائم حرکتی ندارد، برآیند نیروهای قائم صفر است: F_N - mg = 0",
+                            "رسم نیروها و محاسبه نیروی عمودی سطح",
+                            "چون جسم در راستای قائم حرکتی ندارد، برآیند نیروهای قائم صفر است:",
                             "F_N = m · g",
                             "F_N = $m kg × 9.8 m/s² = ${"%.2f".format(fn)} N"
                         ),
                         SolverStep(
                             2,
-                            "محاسبه نیروی اصطکاک جنبشی (f_k)",
+                            "محاسبه نیروی اصطکاک جنبشی",
                             "نیروی اصطکاک برابر حاصل‌ضرب ضریب اصطکاک در نیروی عمودی تکیه‌گاه است:",
                             "f_k = μ_k · F_N",
                             "f_k = $mu × ${"%.2f".format(fn)} = ${"%.2f".format(fk)} N"
                         ),
                         SolverStep(
                             3,
-                            "محاسبه نیروی خالص برآیند (ΣF)",
-                            "نیروی پیشران منهای اصطکاک بازدارنده:",
+                            "محاسبه نیروی برآیند خالص",
+                            "نیروی جلوبرنده منهای نیروی اصطکاک بازدارنده:",
                             "ΣF = F - f_k",
                             "ΣF = $f - ${"%.2f".format(fk)} = ${"%.2f".format(netF)} N"
                         ),
@@ -194,28 +196,28 @@ fun SolverScreen(
                     title = "محاسبه کار و انرژی مکانیکی",
                     category = "کار و انرژی (پایه دهم)",
                     inputSummary = "m = $m kg , h = $h m , v = $v m/s",
-                    resultSummary = "انرژی کل E = ${"%.2f".format(totalE)} J (K=${"%.2f".format(k)} J, U=${"%.2f".format(u)} J)",
+                    resultSummary = "انرژی کل: ${PersianUtils.formatNumber(totalE, 2)} ژول (جنبشی: ${PersianUtils.formatNumber(k, 2)} ژول، پتانسیل: ${PersianUtils.formatNumber(u, 2)} ژول)",
                     steps = listOf(
                         SolverStep(
                             1,
-                            "محاسبه انرژی پتانسیل گرانشی (U)",
-                            "انرژی وابسته به ارتفاع از سطح زمین:",
+                            "محاسبه انرژی پتانسیل گرانشی",
+                            "انرژی وابسته به موقعیت و ارتفاع جسم از سطح زمین:",
                             "U = m · g · h",
-                            "U = $m × 9.8 × $h = ${"%.2f".format(u)} ژول (J)"
+                            "U = $m × 9.8 × $h = ${"%.2f".format(u)} J"
                         ),
                         SolverStep(
                             2,
-                            "محاسبه انرژی جنبشی (K)",
-                            "انرژی ناشی از تندی جسم:",
+                            "محاسبه انرژی جنبشی",
+                            "انرژی وابسته به جرم و تندی حرکت جسم:",
                             "K = ½ m · v²",
-                            "K = 0.5 × $m × ($v)² = ${"%.2f".format(k)} ژول (J)"
+                            "K = 0.5 × $m × ($v)² = ${"%.2f".format(k)} J"
                         ),
                         SolverStep(
                             3,
-                            "محاسبه انرژی مکانیکی کل (E)",
-                            "طبق پایستگی انرژی مکانیکی، انرژی کل مجموع K و U است:",
+                            "محاسبه انرژی مکانیکی کل",
+                            "طبق پایستگی انرژی مکانیکی، انرژی کل مجموع انرژی جنبشی و پتانسیل است:",
                             "E_total = K + U",
-                            "E_total = ${"%.2f".format(k)} + ${"%.2f".format(u)} = ${"%.2f".format(totalE)} ژول (J)"
+                            "E_total = ${"%.2f".format(k)} + ${"%.2f".format(u)} = ${"%.2f".format(totalE)} J"
                         )
                     )
                 )
@@ -237,7 +239,7 @@ fun SolverScreen(
                     title = "محاسبه تعادل گرمایی دو جسم",
                     category = "دما و گرما (پایه دهم)",
                     inputSummary = "ماده ۱: $m1 kg, $t1°C | ماده ۲: $m2 kg, $t2°C",
-                    resultSummary = "دمای تعادل T_e = ${"%.2f".format(te)} °C",
+                    resultSummary = "دمای تعادل: ${PersianUtils.formatNumber(te, 2)} درجه سلسیوس",
                     steps = listOf(
                         SolverStep(
                             1,
@@ -248,17 +250,17 @@ fun SolverScreen(
                         ),
                         SolverStep(
                             2,
-                            "محاسبه ظرفیت گرمایی اجسام (C = mc)",
-                            "ظرفیت گرمایی هر جزء را محاسبه می‌کنیم:",
-                            "C₁ = m₁c₁ , C₂ = m₂c₂",
-                            "C₁ = $m1 × $c1 = $cTotal1 J/K\nC₂ = $m2 × $c2 = $cTotal2 J/K"
+                            "محاسبه ظرفیت گرمایی اجسام",
+                            "ظرفیت گرمایی هر جزء را جداگانه محاسبه می‌کنیم:",
+                            "C₁ = m₁ · c₁  ,  C₂ = m₂ · c₂",
+                            "C₁ = $m1 × $c1 = $cTotal1 J/K  |  C₂ = $m2 × $c2 = $cTotal2 J/K"
                         ),
                         SolverStep(
                             3,
-                            "استخراج رابطه دمای تعادل (T_e)",
-                            "با فاکتورگیری از T_e خواهیم داشت:",
+                            "استخراج رابطه دمای تعادل نهایی",
+                            "با فاکتورگیری از دمای تعادل خواهیم داشت:",
                             "T_e = (C₁·T₁ + C₂·T₂) / (C₁ + C₂)",
-                            "T_e = ($cTotal1 × $t1 + $cTotal2 × $t2) / ($cTotal1 + $cTotal2)\nT_e = ${cTotal1 * t1 + cTotal2 * t2} / ${cTotal1 + cTotal2} = ${"%.2f".format(te)} °C"
+                            "T_e = ($cTotal1 × $t1 + $cTotal2 × $t2) / ($cTotal1 + $cTotal2) = ${"%.2f".format(te)} °C"
                         )
                     )
                 )
@@ -282,7 +284,7 @@ fun SolverScreen(
                     title = if (isSeries) "تحلیل مدار متوالی مقاومت‌ها" else "تحلیل مدار موازی مقاومت‌ها",
                     category = "الکتریسیته جاری (پایه یازدهم)",
                     inputSummary = "R₁=${r1}Ω, R₂=${r2}Ω, R₃=${r3}Ω, V=${v} V",
-                    resultSummary = "R_eq = ${"%.2f".format(req)} Ω | I = ${"%.2f".format(iTotal)} A | P = ${"%.2f".format(pTotal)} W",
+                    resultSummary = "مقاومت معادل: ${PersianUtils.formatNumber(req, 2)} اهم | شدت جریان: ${PersianUtils.formatNumber(iTotal, 3)} آمپر | توان کل: ${PersianUtils.formatNumber(pTotal, 2)} وات",
                     steps = listOf(
                         SolverStep(
                             1,
@@ -296,14 +298,14 @@ fun SolverScreen(
                             "محاسبه جریان کل عبوری از مدار با قانون اهم",
                             "جریان کل از نسبت اختلاف پتانسیل کل به مقاومت معادل کل به دست می‌آید:",
                             "I_total = V / R_eq",
-                            "I_total = $v / ${"%.2f".format(req)} = ${"%.3f".format(iTotal)} آمپر (A)"
+                            "I_total = $v / ${"%.2f".format(req)} = ${"%.3f".format(iTotal)} A"
                         ),
                         SolverStep(
                             3,
                             "محاسبه توان الکتریکی کل مصرفی مدار",
-                            "توان الکتریکی مصرف شده در کل مدار:",
+                            "توان الکتریکی مصرف شده در کل مدار برابر حاصل‌ضرب ولتاژ در جریان کل است:",
                             "P = V · I_total",
-                            "P = $v × ${"%.3f".format(iTotal)} = ${"%.2f".format(pTotal)} وات (W)"
+                            "P = $v × ${"%.3f".format(iTotal)} = ${"%.2f".format(pTotal)} W"
                         )
                     )
                 )
@@ -322,27 +324,27 @@ fun SolverScreen(
                     title = "محاسبه نیروی قانون کولن بین دو بار نقطه‌ای",
                     category = "الکتریسیته ساکن (پایه یازدهم)",
                     inputSummary = "q₁ = $q1Micro μC , q₂ = $q2Micro μC , r = $distCm cm",
-                    resultSummary = "نیرو F = ${"%.2f".format(force)} N (${if (isAttractive) "ربایشی" else "رانشی"})",
+                    resultSummary = "نیروی الکتریکی: ${PersianUtils.formatNumber(force, 3)} نیوتن (${if (isAttractive) "ربایشی" else "رانشی"})",
                     steps = listOf(
                         SolverStep(
                             1,
-                            "تبدیل یکاها به دستگاه بین‌المللی SI",
-                            "میکروکولن (μC) به کولن (C) با ضرب در ۱۰⁻⁶ و سانتی‌متر (cm) به متر (m) با ضرب در ۱۰⁻² تبدیل می‌شوند.",
-                            "q₁ = $q1Micro × 10⁻⁶ C\nq₂ = $q2Micro × 10⁻⁶ C\nr = $distCm × 10⁻² = $r m",
-                            "یکاهای استاندارد آماده جایگذاری در فرمول هستند."
+                            "تبدیل یکاها به دستگاه بین‌المللی",
+                            "میکروکولن به کولن با ضرب در ۱۰⁻⁶ و سانتی‌متر به متر با ضرب در ۱۰⁻² تبدیل می‌شوند:",
+                            "q₁ = $q1Micro × 10⁻⁶ C  |  q₂ = $q2Micro × 10⁻⁶ C  |  r = $distCm × 10⁻² = $r m",
+                            "یکاهای استاندارد آماده جایگذاری در فرمول قانون کولن هستند."
                         ),
                         SolverStep(
                             2,
                             "قانون کولن و جایگذاری مقادیر",
-                            "ثابت کولن در خلأ: k = 8.99 × 10⁹ N·m²/C²",
+                            "ثابت کولن در خلأ برابر ۸٫۹۹ ضرب در ۱۰ به توان ۹ است:",
                             "F = k · |q₁ · q₂| / r²",
-                            "F = (8.99 × 10⁹ × |$q1Micro × $q2Micro| × 10⁻¹²) / ($r)²\nF = ${"%.3f".format(force)} نیوتن (N)"
+                            "F = (8.99 × 10⁹ × |$q1Micro × $q2Micro| × 10⁻¹²) / ($r)² = ${"%.3f".format(force)} N"
                         ),
                         SolverStep(
                             3,
                             "تعیین نوع نیرو (جاذبه یا دافعه)",
-                            "بررسی همنام یا ناهم‌نام بودن بارها:",
-                            "علامت حاصل‌ضرب q₁ · q₂",
+                            "بررسی همنام یا ناهم‌نام بودن بارهای الکتریکی:",
+                            "علامت حاصل‌ضرب barlar",
                             if (isAttractive) "بارهای الکتریکی ناهم‌نام هستند (+ و -)؛ بنابراین نیروی بین آن‌ها «ربایشی (جذب)» است." else "بارهای الکتریکی همنام هستند؛ بنابراین نیروی بین آن‌ها «رانشی (دفع)» است."
                         )
                     )
@@ -381,6 +383,7 @@ fun SolverScreen(
                 items(SolverTopic.values()) { topic ->
                     val isSelected = selectedTopic == topic
                     FilterChip(
+                        modifier = Modifier.wrapContentWidth(),
                         selected = isSelected,
                         onClick = {
                             selectedTopic = topic
@@ -390,7 +393,9 @@ fun SolverScreen(
                             Text(
                                 topic.title,
                                 fontSize = 12.sp,
-                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
+                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                                maxLines = 1,
+                                softWrap = false
                             )
                         },
                         colors = FilterChipDefaults.filterChipColors(
@@ -685,7 +690,7 @@ fun SolverScreen(
                             ) {
                                 Box(contentAlignment = Alignment.Center) {
                                     Text(
-                                        step.stepNumber.toString(),
+                                        PersianUtils.formatInt(step.stepNumber),
                                         color = Color.White,
                                         fontWeight = FontWeight.Bold,
                                         fontSize = 12.sp
@@ -707,36 +712,23 @@ fun SolverScreen(
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
 
-                        // Formula chip box
-                        Surface(
-                            shape = RoundedCornerShape(8.dp),
-                            color = Color(0xFF0F172A),
-                            border = androidx.compose.foundation.BorderStroke(1.dp, PhysicsCyan.copy(alpha = 0.3f)),
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Text(
-                                text = step.formula,
-                                fontSize = 13.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = PhysicsCyan,
-                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
-                            )
-                        }
+                        // Formula chip box (strictly LTR)
+                        LtrMathBox(
+                            formula = step.formula,
+                            fontSize = 13,
+                            textColor = PhysicsCyan,
+                            backgroundColor = Color(0xFF0F172A),
+                            borderColor = PhysicsCyan.copy(alpha = 0.35f)
+                        )
 
-                        // Calculation result
-                        Surface(
-                            shape = RoundedCornerShape(8.dp),
-                            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Text(
-                                text = step.calculation,
-                                fontSize = 12.sp,
-                                fontWeight = FontWeight.SemiBold,
-                                color = MaterialTheme.colorScheme.onSurface,
-                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
-                            )
-                        }
+                        // Calculation result (strictly LTR)
+                        LtrMathBox(
+                            formula = step.calculation,
+                            fontSize = 12,
+                            textColor = Color.White,
+                            backgroundColor = Color(0xFF1E293B),
+                            borderColor = PhysicsGreen.copy(alpha = 0.35f)
+                        )
                     }
                 }
             }

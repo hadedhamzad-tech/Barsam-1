@@ -22,8 +22,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.ui.theme.*
+import com.example.util.PersianUtils
 import kotlinx.coroutines.delay
 import kotlin.math.*
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
+import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.unit.LayoutDirection
 
 data class CelestialBody(val name: String, val g: Float, val color: Color)
 
@@ -82,13 +87,15 @@ fun ProjectileSim() {
             .padding(12.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        // Celestial Presets Row
-        Row(
+        // Celestial Presets Row (Single-line chips with Persian numbers)
+        LazyRow(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(6.dp)
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            contentPadding = PaddingValues(horizontal = 2.dp)
         ) {
-            celestialBodies.forEach { body ->
+            items(celestialBodies) { body ->
                 FilterChip(
+                    modifier = Modifier.wrapContentWidth(),
                     selected = selectedBody == body,
                     onClick = {
                         selectedBody = body
@@ -97,9 +104,11 @@ fun ProjectileSim() {
                     },
                     label = {
                         Text(
-                            "${body.name} (${body.g})",
+                            text = "${body.name} (${PersianUtils.formatNumber(body.g, 1)})",
                             fontSize = 12.sp,
-                            fontWeight = if (selectedBody == body) FontWeight.Bold else FontWeight.Normal
+                            fontWeight = if (selectedBody == body) FontWeight.Bold else FontWeight.Normal,
+                            maxLines = 1,
+                            softWrap = false
                         )
                     },
                     colors = FilterChipDefaults.filterChipColors(
@@ -238,7 +247,7 @@ fun ProjectileSim() {
                 color = Color(0xFF1E293B).copy(alpha = 0.85f)
             ) {
                 Text(
-                    text = "زمان: ${"%.2f".format(simTime)} ثانیه",
+                    text = "زمان: ${PersianUtils.formatNumber(simTime, 2)} ثانیه",
                     color = PhysicsCyan,
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Bold,
@@ -294,22 +303,22 @@ fun ProjectileSim() {
         ) {
             MetricCard(
                 title = "برد نهایی (R)",
-                value = "${"%.1f".format(maxRange)} متر",
-                formula = "v₀²·sin(2θ)/g",
+                value = "${PersianUtils.formatNumber(maxRange, 1)} متر",
+                formula = "R = v₀²·sin(2θ)/g",
                 color = PhysicsCyan,
                 modifier = Modifier.weight(1f)
             )
             MetricCard(
                 title = "ارتفاع اوج (H)",
-                value = "${"%.1f".format(maxHeight)} متر",
-                formula = "v₀y² / 2g",
+                value = "${PersianUtils.formatNumber(maxHeight, 1)} متر",
+                formula = "H = v₀y² / 2g",
                 color = PhysicsAmber,
                 modifier = Modifier.weight(1f)
             )
             MetricCard(
                 title = "زمان پرواز (t)",
-                value = "${"%.2f".format(flightTime)} ثانیه",
-                formula = "2v₀y / g",
+                value = "${PersianUtils.formatNumber(flightTime, 2)} ثانیه",
+                formula = "t = 2v₀y / g",
                 color = PhysicsGreen,
                 modifier = Modifier.weight(1f)
             )
@@ -327,7 +336,7 @@ fun ProjectileSim() {
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Text("زاویه پرتاب (θ):", fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
-                    Text("${angleDeg.toInt()}° درجه", color = PhysicsCyan, fontWeight = FontWeight.Bold)
+                    Text("${PersianUtils.formatInt(angleDeg.toInt())}° درجه", color = PhysicsCyan, fontWeight = FontWeight.Bold)
                 }
                 Slider(
                     value = angleDeg,
@@ -350,7 +359,7 @@ fun ProjectileSim() {
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Text("تندی اولیه (v₀):", fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
-                    Text("${velocity.toInt()} m/s", color = PhysicsAmber, fontWeight = FontWeight.Bold)
+                    Text("${PersianUtils.formatInt(velocity.toInt())} متر بر ثانیه", color = PhysicsAmber, fontWeight = FontWeight.Bold)
                 }
                 Slider(
                     value = velocity,
@@ -390,7 +399,9 @@ fun MetricCard(
         ) {
             Text(title, fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f))
             Text(value, fontSize = 15.sp, fontWeight = FontWeight.Bold, color = color)
-            Text(formula, fontSize = 9.sp, color = color.copy(alpha = 0.75f))
+            CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
+                Text(formula, fontSize = 9.sp, color = color.copy(alpha = 0.85f), fontWeight = FontWeight.SemiBold)
+            }
         }
     }
 }

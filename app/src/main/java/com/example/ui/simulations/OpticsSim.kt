@@ -4,6 +4,8 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -18,6 +20,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.ui.theme.*
+import com.example.util.PersianUtils
 import kotlin.math.*
 
 data class OpticalMedium(val name: String, val n: Float, val color: Color)
@@ -42,17 +45,19 @@ fun OpticsSim() {
 
     // Critical Angle calculation
     val hasCriticalAngle = n1 > n2
-    val criticalAngleDeg = if (hasCriticalAngle) {
-        Math.toDegrees(asin(n2 / n1.toDouble())).toFloat()
+    val criticalAngleDeg = if (hasCriticalAngle && n1 > 0f) {
+        val ratio = (n2 / n1.toDouble()).coerceIn(0.0, 1.0)
+        Math.toDegrees(asin(ratio)).toFloat()
     } else null
 
-    // Snell's Law
+    // Snell's Law with robust float clamping to prevent NaN
     val theta1Rad = Math.toRadians(theta1Deg.toDouble())
-    val sinTheta2 = (n1 * sin(theta1Rad)) / n2
-    val isTotalInternalReflection = sinTheta2 > 1.0
+    val rawSinTheta2 = (n1 * sin(theta1Rad)) / max(n2, 0.001f)
+    val isTotalInternalReflection = rawSinTheta2 > 1.00001
+    val clampedSin = rawSinTheta2.coerceIn(0.0, 1.0)
 
     val theta2Deg = if (!isTotalInternalReflection) {
-        Math.toDegrees(asin(sinTheta2)).toFloat()
+        Math.toDegrees(asin(clampedSin)).toFloat()
     } else 0f
 
     Column(
@@ -61,25 +66,33 @@ fun OpticsSim() {
             .padding(12.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        // Media Selection Row
+        // Media Selection Card
         Card(
             modifier = Modifier.fillMaxWidth(),
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
         ) {
-            Column(modifier = Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 // Medium 1 Selector
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text("محیط اول (n₁):", fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
-                    Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                        media.forEach { med ->
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Text("محیط اول تابش (n₁):", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                    LazyRow(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        items(media) { med ->
                             FilterChip(
+                                modifier = Modifier.wrapContentWidth(),
                                 selected = medium1 == med,
                                 onClick = { medium1 = med },
-                                label = { Text("${med.name} (${med.n})", fontSize = 11.sp) },
+                                label = {
+                                    Text(
+                                        text = "${med.name} (${PersianUtils.formatNumber(med.n, 2)})",
+                                        fontSize = 11.sp,
+                                        fontWeight = if (medium1 == med) FontWeight.Bold else FontWeight.Normal,
+                                        maxLines = 1,
+                                        softWrap = false
+                                    )
+                                },
                                 colors = FilterChipDefaults.filterChipColors(
                                     selectedContainerColor = PhysicsCyan.copy(alpha = 0.3f),
                                     selectedLabelColor = PhysicsCyan
@@ -90,18 +103,26 @@ fun OpticsSim() {
                 }
 
                 // Medium 2 Selector
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text("محیط دوم (n₂):", fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
-                    Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                        media.forEach { med ->
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Text("محیط دوم شکست (n₂):", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                    LazyRow(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        items(media) { med ->
                             FilterChip(
+                                modifier = Modifier.wrapContentWidth(),
                                 selected = medium2 == med,
                                 onClick = { medium2 = med },
-                                label = { Text("${med.name} (${med.n})", fontSize = 11.sp) },
+                                label = {
+                                    Text(
+                                        text = "${med.name} (${PersianUtils.formatNumber(med.n, 2)})",
+                                        fontSize = 11.sp,
+                                        fontWeight = if (medium2 == med) FontWeight.Bold else FontWeight.Normal,
+                                        maxLines = 1,
+                                        softWrap = false
+                                    )
+                                },
                                 colors = FilterChipDefaults.filterChipColors(
                                     selectedContainerColor = PhysicsPurple.copy(alpha = 0.3f),
                                     selectedLabelColor = PhysicsPurple
@@ -228,13 +249,13 @@ fun OpticsSim() {
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
-                    text = "محیط ۱: ${medium1.name} (n₁=${medium1.n})",
+                    text = "محیط ۱: ${medium1.name} (n₁=${PersianUtils.formatNumber(medium1.n, 2)})",
                     fontSize = 11.sp,
                     color = PhysicsCyan,
                     fontWeight = FontWeight.Bold
                 )
                 Text(
-                    text = "تابش: θ₁ = ${theta1Deg.toInt()}°",
+                    text = "تابش: θ₁ = ${PersianUtils.formatInt(theta1Deg.toInt())} درجه",
                     fontSize = 11.sp,
                     color = PhysicsCyan,
                     fontWeight = FontWeight.Bold
@@ -249,14 +270,14 @@ fun OpticsSim() {
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
-                    text = "محیط ۲: ${medium2.name} (n₂=${medium2.n})",
+                    text = "محیط ۲: ${medium2.name} (n₂=${PersianUtils.formatNumber(medium2.n, 2)})",
                     fontSize = 11.sp,
                     color = PhysicsPurple,
                     fontWeight = FontWeight.Bold
                 )
                 if (!isTotalInternalReflection) {
                     Text(
-                        text = "شکست: θ₂ = ${"%.1f".format(theta2Deg)}°",
+                        text = "شکست: θ₂ = ${PersianUtils.formatNumber(theta2Deg, 1)} درجه",
                         fontSize = 11.sp,
                         color = PhysicsGreen,
                         fontWeight = FontWeight.Bold
@@ -287,7 +308,7 @@ fun OpticsSim() {
                     Text("⚠️", fontSize = 16.sp)
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        "بازتاب کلی رخ داده است! چون نور از محیط غلیظ به رقیق وارد می‌شود و زاویه تابش (${theta1Deg.toInt()}°) از زاویه حد (${"%.1f".format(criticalAngleDeg)}°) بزرگتر است، هیچ نوری وارد محیط دوم نمی‌شود.",
+                        "بازتاب کلی رخ داده است! چون نور از محیط غلیظ به رقیق وارد می‌شود و زاویه تابش (${PersianUtils.formatInt(theta1Deg.toInt())} درجه) از زاویه حد (${PersianUtils.formatNumber(criticalAngleDeg ?: 0f, 1)} درجه) بزرگتر است، هیچ نوری وارد محیط دوم نمی‌شود.",
                         fontSize = 11.sp,
                         color = PhysicsRed,
                         lineHeight = 16.sp
@@ -303,21 +324,21 @@ fun OpticsSim() {
         ) {
             MetricCard(
                 title = "زاویه شکست (θ₂)",
-                value = if (isTotalInternalReflection) "---" else "${"%.1f".format(theta2Deg)}°",
+                value = if (isTotalInternalReflection) "---" else "${PersianUtils.formatNumber(theta2Deg, 1)} درجه",
                 formula = "n₁·sin(θ₁) = n₂·sin(θ₂)",
                 color = PhysicsGreen,
                 modifier = Modifier.weight(1f)
             )
             MetricCard(
                 title = "زاویه حد (θ_c)",
-                value = if (criticalAngleDeg != null) "${"%.1f".format(criticalAngleDeg)}°" else "وجود ندارد",
+                value = if (criticalAngleDeg != null) "${PersianUtils.formatNumber(criticalAngleDeg, 1)} درجه" else "وجود ندارد",
                 formula = "sin(θ_c) = n₂ / n₁",
                 color = PhysicsAmber,
                 modifier = Modifier.weight(1f)
             )
             MetricCard(
                 title = "نسبت شکست",
-                value = "${"%.2f".format(n1 / n2)}",
+                value = PersianUtils.formatNumber(n1 / n2, 2),
                 formula = "n₁ / n₂",
                 color = PhysicsCyan,
                 modifier = Modifier.weight(1f)
@@ -335,7 +356,7 @@ fun OpticsSim() {
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Text("زاویه تابش نور (θ₁):", fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
-                    Text("${theta1Deg.toInt()}° درجه", color = PhysicsCyan, fontWeight = FontWeight.Bold)
+                    Text("${PersianUtils.formatInt(theta1Deg.toInt())} درجه", color = PhysicsCyan, fontWeight = FontWeight.Bold)
                 }
                 Slider(
                     value = theta1Deg,
