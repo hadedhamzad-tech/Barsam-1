@@ -11,11 +11,13 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.lifecycleScope
 import com.example.data.AppDatabase
 import com.example.data.PhysicsRepository
 import com.example.notification.NotificationHelper
 import com.example.ui.MainScreen
 import com.example.ui.theme.PhysicsTheme
+import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -31,8 +33,14 @@ class MainActivity : ComponentActivity() {
             problemDao = database.problemDao(),
             quizDao = database.quizDao(),
             achievementDao = database.achievementDao(),
-            progressDao = database.progressDao()
+            progressDao = database.progressDao(),
+            topicDao = database.topicDao()
         )
+
+        lifecycleScope.launch {
+            repository.ensureDefaultAchievements()
+            repository.ensureDefaultTopics()
+        }
 
         setContent {
             var isDarkTheme by remember { mutableStateOf(true) }

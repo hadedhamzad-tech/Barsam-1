@@ -358,7 +358,7 @@ fun SolverScreen(
             .fillMaxSize()
             .padding(12.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
-        contentPadding = PaddingValues(bottom = 24.dp)
+        contentPadding = PaddingValues(top = 4.dp, bottom = 80.dp)
     ) {
         item {
             Text(

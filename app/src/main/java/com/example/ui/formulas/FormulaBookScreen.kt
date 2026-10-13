@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
@@ -15,6 +16,7 @@ import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -30,11 +32,12 @@ import com.example.util.PersianUtils
 
 @Composable
 fun FormulaBookScreen() {
-    var searchQuery by remember { mutableStateOf("") }
+    var searchQuery by rememberSaveable { mutableStateOf("") }
     val grades = listOf("همه پایه‌ها", "پایه دهم", "پایه یازدهم", "پایه دوازدهم")
-    var selectedGrade by remember { mutableStateOf("همه پایه‌ها") }
-    var expandedFormulaId by remember { mutableStateOf<String?>(null) }
-    var showNotificationSettings by remember { mutableStateOf(false) }
+    var selectedGrade by rememberSaveable { mutableStateOf("همه پایه‌ها") }
+    var expandedFormulaId by rememberSaveable { mutableStateOf<String?>(null) }
+    var showNotificationSettings by rememberSaveable { mutableStateOf(false) }
+    val listState = rememberLazyListState()
 
     val filteredFormulas = remember(searchQuery, selectedGrade) {
         PhysicsData.formulas.filter { item ->
@@ -50,11 +53,12 @@ fun FormulaBookScreen() {
 
     Box(modifier = Modifier.fillMaxSize()) {
         LazyColumn(
+            state = listState,
             modifier = Modifier
                 .fillMaxSize()
                 .padding(12.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp),
-            contentPadding = PaddingValues(bottom = 24.dp)
+            contentPadding = PaddingValues(top = 0.dp, bottom = 80.dp)
         ) {
             // Header
             item {

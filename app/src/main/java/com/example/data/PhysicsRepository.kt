@@ -7,14 +7,95 @@ class PhysicsRepository(
     private val problemDao: ProblemDao,
     private val quizDao: QuizDao,
     private val achievementDao: AchievementDao,
-    private val progressDao: ProgressDao
+    private val progressDao: ProgressDao,
+    private val topicDao: TopicDao
 ) {
     val savedProblems: Flow<List<SavedProblemEntity>> = problemDao.getAllSavedProblems()
     val quizScores: Flow<List<QuizScoreEntity>> = quizDao.getAllScores()
     val achievements: Flow<List<AchievementEntity>> = achievementDao.getAllAchievements()
     val userProgress: Flow<UserProgressEntity?> = progressDao.getUserProgress()
+    val topicProgress: Flow<List<TopicProgressEntity>> = topicDao.getAllTopicProgress()
 
     companion object {
+        val DEFAULT_TOPICS = listOf(
+            TopicProgressEntity(
+                topicId = "kinematics",
+                topicName = "سینماتیک و حرکت‌شناسی",
+                grade = "دوازدهم",
+                iconEmoji = "🚀"
+            ),
+            TopicProgressEntity(
+                topicId = "dynamics",
+                topicName = "دینامیک و قوانین نیوتن",
+                grade = "دوازدهم",
+                iconEmoji = "⚖️"
+            ),
+            TopicProgressEntity(
+                topicId = "energy_work",
+                topicName = "کار، توان و انرژی",
+                grade = "دهم",
+                iconEmoji = "⚡"
+            ),
+            TopicProgressEntity(
+                topicId = "matter_pressure",
+                topicName = "ویژگی‌های ماده و فشار",
+                grade = "دهم",
+                iconEmoji = "🌊"
+            ),
+            TopicProgressEntity(
+                topicId = "heat_thermo",
+                topicName = "دما، گرما و ترمودینامیک",
+                grade = "دهم",
+                iconEmoji = "🔥"
+            ),
+            TopicProgressEntity(
+                topicId = "electrostatics",
+                topicName = "الکتریسیته ساکن و خازن",
+                grade = "یازدهم",
+                iconEmoji = "🔋"
+            ),
+            TopicProgressEntity(
+                topicId = "circuits",
+                topicName = "جریان و مدارهای الکتریکی",
+                grade = "یازدهم",
+                iconEmoji = "💡"
+            ),
+            TopicProgressEntity(
+                topicId = "magnetism",
+                topicName = "مغناطیس و القای الکترومغناطیسی",
+                grade = "یازدهم",
+                iconEmoji = "🧲"
+            ),
+            TopicProgressEntity(
+                topicId = "waves_sound",
+                topicName = "نوسان، امواج و صوت",
+                grade = "دوازدهم",
+                iconEmoji = "〰️"
+            ),
+            TopicProgressEntity(
+                topicId = "optics_modern",
+                topicName = "شکست نور، اپتیک و فیزیک نوین",
+                grade = "دوازدهم",
+                iconEmoji = "🔬"
+            )
+        )
+
+        fun mapQuestionTopicToTopicId(t: String): String {
+            return when {
+                listOf("سینماتیک", "حرکت", "شتاب", "سقوط", "پرتابه", "مسافت").any { it in t } -> "kinematics"
+                listOf("دینامیک", "نیوتن", "اصطکاک", "تکانه", "برخورد").any { it in t } -> "dynamics"
+                listOf("کار", "توان", "انرژی", "پتانسیل").any { it in t } -> "energy_work"
+                listOf("فشار", "چگالی", "شاره", "شناوری", "ارشمیدس", "توریچلی", "کشش سطحی").any { it in t } -> "matter_pressure"
+                listOf("دما", "گرما", "ترمودینامیک", "گاز", "انبساط", "بویل").any { it in t } -> "heat_thermo"
+                listOf("الکتریسیته", "کولن", "خازن", "میدان الکتریکی", "بار").any { it in t } -> "electrostatics"
+                listOf("مدار", "مقاومت", "جریان", "کیرش", "ولتاژ", "پل وتستون", "مولد").any { it in t } -> "circuits"
+                listOf("مغناطیس", "القا", "فارادی", "لنز", "سیم‌لوله", "پیچه", "شار", "سیم‌های موازی").any { it in t } -> "magnetism"
+                listOf("نوسان", "موج", "امواج", "صوت", "دوپلر", "آونگ", "فنر").any { it in t } -> "waves_sound"
+                listOf("نور", "اپتیک", "منشور", "شکست", "کوانتوم", "هسته‌ای", "فوتوالکتریک", "اتمی", "دوبروی", "واپاشی", "طیف", "بازتاب").any { it in t } -> "optics_modern"
+                else -> "energy_work"
+            }
+        }
+
         val DEFAULT_ACHIEVEMENTS = listOf(
             AchievementEntity(
                 id = "sim_projectile",
@@ -147,6 +228,47 @@ class PhysicsRepository(
         val current = progressDao.getUserProgressOnce()
         if (current == null) {
             progressDao.saveUserProgress(UserProgressEntity())
+        }
+    }
+
+    suspend fun ensureDefaultTopics() {
+        if (topicDao.getTopicCount() == 0) {
+            topicDao.insertOrUpdateTopics(DEFAULT_TOPICS)
+        }
+    }
+
+    suspend fun recordQuestionResults(
+        questions: List<com.example.model.QuizQuestion>,
+        userAnswers: Map<Int, Boolean>
+    ) {
+        ensureDefaultTopics()
+        val topicDeltas = mutableMapOf<String, Pair<Int, Int>>() // topicId -> (deltaCorrect, deltaTotal)
+        questions.forEachIndexed { index, q ->
+            val topicId = mapQuestionTopicToTopicId(q.topic)
+            val isCorrect = userAnswers[index] == true
+            val current = topicDeltas[topicId] ?: Pair(0, 0)
+            topicDeltas[topicId] = Pair(
+                current.first + (if (isCorrect) 1 else 0),
+                current.second + 1
+            )
+        }
+
+        for ((topicId, delta) in topicDeltas) {
+            val existing = topicDao.getTopicById(topicId) ?: DEFAULT_TOPICS.firstOrNull { it.topicId == topicId } ?: continue
+            val newCorrect = existing.correctCount + delta.first
+            val newTotal = existing.totalAnswered + delta.second
+            val newPercentage = if (newTotal > 0) {
+                kotlin.math.round((newCorrect.toFloat() / newTotal) * 100f).toInt().coerceIn(0, 100)
+            } else 0
+
+            topicDao.insertOrUpdateTopic(
+                existing.copy(
+                    correctCount = newCorrect,
+                    totalAnswered = newTotal,
+                    masteryPercentage = newPercentage,
+                    lastUpdated = System.currentTimeMillis()
+                )
+            )
         }
     }
 

@@ -49,3 +49,17 @@ data class UserProgressEntity(
     val quizzesCompleted: Int = 0,
     val problemsSaved: Int = 0
 )
+
+@Entity(tableName = "topic_progress")
+data class TopicProgressEntity(
+    @PrimaryKey
+    val topicId: String,
+    val topicName: String,
+    val grade: String,
+    val iconEmoji: String,
+    val correctCount: Int = 0,
+    val totalAnswered: Int = 0,
+    val masteryPercentage: Int = 0,
+    val lastUpdated: Long = System.currentTimeMillis()
+)
+

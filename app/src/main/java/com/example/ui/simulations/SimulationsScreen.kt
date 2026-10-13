@@ -51,7 +51,7 @@ fun SimulationsScreen(
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(bottom = 24.dp)
+        contentPadding = PaddingValues(top = 0.dp, bottom = 80.dp)
     ) {
         // Hero Banner Header
         item {

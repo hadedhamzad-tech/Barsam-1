@@ -10,6 +10,8 @@ import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -54,12 +56,12 @@ sealed class NavigationTab(
     object Formulas : NavigationTab(
         "formulas",
         "فرمول‌نامه",
-        Icons.Filled.MenuBook,
+        Icons.Default.MenuBook,
         Icons.Outlined.MenuBook
     )
     object Quiz : NavigationTab(
         "quiz",
-        "آزمون و نتایج",
+        "آزمون و کارنامه",
         Icons.Filled.Quiz,
         Icons.Outlined.Quiz
     )
@@ -72,7 +74,18 @@ fun MainScreen(
     isDarkTheme: Boolean,
     onToggleTheme: () -> Unit
 ) {
-    var selectedTab by remember { mutableStateOf<NavigationTab>(NavigationTab.Simulations) }
+    val navTabs = remember {
+        listOf(
+            NavigationTab.Simulations,
+            NavigationTab.Solver,
+            NavigationTab.Formulas,
+            NavigationTab.Quiz
+        )
+    }
+    var selectedRoute by rememberSaveable { mutableStateOf(NavigationTab.Simulations.route) }
+    val selectedTab = navTabs.find { it.route == selectedRoute } ?: NavigationTab.Simulations
+    val saveableStateHolder = rememberSaveableStateHolder()
+
     val snackbarHostState = remember { SnackbarHostState() }
     var showAboutDialog by remember { mutableStateOf(false) }
     var showNotificationDialog by remember { mutableStateOf(false) }
@@ -132,7 +145,7 @@ fun MainScreen(
                                         color = PhysicsCyan.copy(alpha = 0.2f)
                                     ) {
                                         Text(
-                                            "نسخه ۱٫۵",
+                                            "نسخه ۱٫۹",
                                             fontSize = 9.sp,
                                             fontWeight = FontWeight.Bold,
                                             color = PhysicsCyan,
@@ -155,7 +168,7 @@ fun MainScreen(
                             shape = RoundedCornerShape(20.dp),
                             color = PhysicsAmber.copy(alpha = 0.16f),
                             border = androidx.compose.foundation.BorderStroke(1.dp, PhysicsAmber.copy(alpha = 0.45f)),
-                            onClick = { selectedTab = NavigationTab.Quiz }
+                            onClick = { selectedRoute = NavigationTab.Quiz.route }
                         ) {
                             Row(
                                 modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
@@ -215,7 +228,7 @@ fun MainScreen(
                         val isSelected = selectedTab == tab
                         NavigationBarItem(
                             selected = isSelected,
-                            onClick = { selectedTab = tab },
+                            onClick = { selectedRoute = tab.route },
                             icon = {
                                 Icon(
                                     imageVector = if (isSelected) tab.selectedIcon else tab.unselectedIcon,
@@ -247,17 +260,19 @@ fun MainScreen(
                     .padding(paddingValues)
             ) {
                 Crossfade(targetState = selectedTab, label = "tabTransition") { tab ->
-                    when (tab) {
-                        NavigationTab.Simulations -> SimulationsScreen(
-                            repository = repository,
-                            snackbarHostState = snackbarHostState
-                        )
-                        NavigationTab.Solver -> SolverScreen(
-                            repository = repository,
-                            snackbarHostState = snackbarHostState
-                        )
-                        NavigationTab.Formulas -> FormulaBookScreen()
-                        NavigationTab.Quiz -> QuizScreen(repository = repository)
+                    saveableStateHolder.SaveableStateProvider(tab.route) {
+                        when (tab) {
+                            NavigationTab.Simulations -> SimulationsScreen(
+                                repository = repository,
+                                snackbarHostState = snackbarHostState
+                            )
+                            NavigationTab.Solver -> SolverScreen(
+                                repository = repository,
+                                snackbarHostState = snackbarHostState
+                            )
+                            NavigationTab.Formulas -> FormulaBookScreen()
+                            NavigationTab.Quiz -> QuizScreen(repository = repository)
+                        }
                     }
                 }
             }
@@ -300,7 +315,7 @@ fun MainScreen(
                                         color = PhysicsCyan.copy(alpha = 0.2f)
                                     ) {
                                         Text(
-                                            "نسخه ۱٫۵",
+                                            "نسخه ۱٫۹",
                                             fontSize = 10.sp,
                                             fontWeight = FontWeight.Bold,
                                             color = PhysicsCyan,
@@ -318,7 +333,7 @@ fun MainScreen(
                             }
                         }
 
-                        // Changelog section for v1.5
+                        // Changelog section for v1.9
                         Surface(
                             shape = RoundedCornerShape(10.dp),
                             color = PhysicsCyan.copy(alpha = 0.12f),
@@ -333,23 +348,20 @@ fun MainScreen(
                                     Text("🎯", fontSize = 13.sp)
                                     Spacer(modifier = Modifier.width(6.dp))
                                     Text(
-                                        "تازه‌های نسخه جدید ۱٫۵:",
+                                        "تازه‌های نسخه جدید ۱٫۹:",
                                         fontWeight = FontWeight.Bold,
                                         fontSize = 11.sp,
                                         color = PhysicsCyan
                                     )
                                 }
-                                Text("• افزودن ۴ سطح دشواری به آزمون فیزیک: پایه (آسان)، متوسط، سخت و کنکوری با امکان انتخاب در شروع آزمون", fontSize = 10.sp, lineHeight = 15.sp)
-                                Text("• گسترش بانک سوالات به ۱۲۰ سوال تخصصی (۳۰ سوال برای هر سطح) با پراکندگی کامل در پایه‌های دهم، یازدهم و دوازدهم", fontSize = 10.sp, lineHeight = 15.sp)
-                                Text("• سوالات چندمرحله‌ای با تبدیل یکاها (g→kg, cm→m, km/h→m/s)، داده‌های اضافه و تحلیل خطاهای متداول کنکور", fontSize = 10.sp, lineHeight = 15.sp)
-                                Text("• راه‌حل تشریحی گام‌به‌گام با تمام مراحل و فرمول‌ها برای همه سوالات سطوح سخت و کنکوری", fontSize = 10.sp, lineHeight = 15.sp)
-                                Text("• راستی‌آزمایی ریاضی مستقل ۱۰۰٪ سوالات بدون هیچ‌گونه گزینه تکراری یا خطای محاسباتی", fontSize = 10.sp, lineHeight = 15.sp)
-                                Text("• حذف سازوکار ضدتوالی و حفظ توزیع متعادل ۲۵٪ با الگوریتم استاندارد Fisher–Yates", fontSize = 10.sp, lineHeight = 15.sp)
-                                Text("• سیستم امتیازدهی تصاعدی با ضرایب دشواری (سطح سخت‌تر = امتیاز بیشتر تا ۲ برابر)", fontSize = 10.sp, lineHeight = 15.sp)
+                                Text("• حفظ پایدار وضعیت انتخاب‌شده در کارنامه (مرتب‌سازی رتبه تسلط/کتاب درسی و مبحث برگزیده) هنگام اسکرول و خروج از کادر با state hoisting و rememberSaveable", fontSize = 10.sp, lineHeight = 15.sp)
+                                Text("• حفظ تب فعال در صفحه آزمون و کارنامه و تثبیت دقیق موقعیت اسکرول فهرست‌ها با rememberLazyListState", fontSize = 10.sp, lineHeight = 15.sp)
+                                Text("• ماندگاری آزمون در حال انجام و سطح انتخابی هنگام جابه‌جایی موقت بین تب‌های پایینی برنامه", fontSize = 10.sp, lineHeight = 15.sp)
+                                Text("• حذف قطعی fallbackToDestructiveMigration و ثبت مایگریشن ساختاریافته چندنسخه‌ای جهت امنیت کامل داده‌های کاربر در دیتابیس Room هنگام ارتقا", fontSize = 10.sp, lineHeight = 15.sp)
                             }
                         }
 
-                        // Changelog history v1.4
+                        // Changelog history v1.8
                         Surface(
                             shape = RoundedCornerShape(10.dp),
                             color = PhysicsGreen.copy(alpha = 0.08f),
@@ -360,8 +372,74 @@ fun MainScreen(
                                 modifier = Modifier.padding(8.dp),
                                 verticalArrangement = Arrangement.spacedBy(3.dp)
                             ) {
-                                Text("پیشینه تغییرات نسخه ۱٫۴:", fontWeight = FontWeight.Bold, fontSize = 10.sp, color = PhysicsGreen)
-                                Text("• ساعت دستی دلخواه یادآور روزانه (TimePicker)، پشتیبانی تا ۳ یادآور، پایداری با BOOT_COMPLETED و کلید صوتی آزمون", fontSize = 9.sp, lineHeight = 14.sp)
+                                Text("پیشینه تغییرات نسخه ۱٫۸:", fontWeight = FontWeight.Bold, fontSize = 10.sp, color = PhysicsGreen)
+                                Text("• فعال‌سازی اسکرول کامل عمودی صفحه نتیجه آزمون و انتقال دکمه‌های شروع مجدد به بالای صفحه", fontSize = 9.sp, lineHeight = 14.sp)
+                                Text("• پیاده‌سازی نمودار میله‌ای پیشرفت کاربر در مباحث مختلف فیزیک با داده‌های دیتابیس Room", fontSize = 9.sp, lineHeight = 14.sp)
+                                Text("• نمایش جدول تفصیلی وضعیت ۱۰ سوال آزمون و تنظیم فاصله انتهایی استاندارد صفحات", fontSize = 9.sp, lineHeight = 14.sp)
+                            }
+                        }
+
+                        // Changelog history v1.7
+                        Surface(
+                            shape = RoundedCornerShape(10.dp),
+                            color = PhysicsGreen.copy(alpha = 0.08f),
+                            border = androidx.compose.foundation.BorderStroke(1.dp, PhysicsGreen.copy(alpha = 0.25f)),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Column(
+                                modifier = Modifier.padding(8.dp),
+                                verticalArrangement = Arrangement.spacedBy(3.dp)
+                            ) {
+                                Text("پیشینه تغییرات نسخه ۱٫۷:", fontWeight = FontWeight.Bold, fontSize = 10.sp, color = PhysicsGreen)
+                                Text("• بازگشت و ارتقای صفحه انتخاب ۵ سطح قبل از آزمون، ضرایب امتیاز مجزا و فشرده‌تر شدن گزینه‌ها", fontSize = 9.sp, lineHeight = 14.sp)
+                            }
+                        }
+
+                        // Changelog history v1.6
+                        Surface(
+                            shape = RoundedCornerShape(10.dp),
+                            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                            border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Column(
+                                modifier = Modifier.padding(8.dp),
+                                verticalArrangement = Arrangement.spacedBy(3.dp)
+                            ) {
+                                Text("پیشینه تغییرات نسخه ۱٫۶:", fontWeight = FontWeight.Bold, fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                Text("• طراحی دو ردیف فشرده برای هدر آزمون، انتقال نشان مبحث به کارت سوال، تثبیت اندازه دکمه صدا و ماندگاری وضعیت صدا", fontSize = 9.sp, lineHeight = 14.sp)
+                            }
+                        }
+
+                        // Changelog history v1.5
+                        Surface(
+                            shape = RoundedCornerShape(10.dp),
+                            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                            border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Column(
+                                modifier = Modifier.padding(8.dp),
+                                verticalArrangement = Arrangement.spacedBy(3.dp)
+                            ) {
+                                Text("پیشینه تغییرات نسخه ۱٫۵:", fontWeight = FontWeight.Bold, fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                Text("• ۴ سطح دشواری آزمون (پایه، متوسط، سخت، کنکوری)، ۱۲۰ سوال تخصصی، راستی‌آزمایی مستقل و امتیازدهی تصاعدی", fontSize = 9.sp, lineHeight = 14.sp)
+                            }
+                        }
+
+                        // Changelog history v1.4
+                        Surface(
+                            shape = RoundedCornerShape(10.dp),
+                            color = PhysicsAmber.copy(alpha = 0.08f),
+                            border = androidx.compose.foundation.BorderStroke(1.dp, PhysicsAmber.copy(alpha = 0.25f)),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Column(
+                                modifier = Modifier.padding(8.dp),
+                                verticalArrangement = Arrangement.spacedBy(3.dp)
+                            ) {
+                                Text("پیشینه تغییرات نسخه ۱٫۴:", fontWeight = FontWeight.Bold, fontSize = 10.sp, color = PhysicsAmber)
+                                Text("• انتخاب زمان دلخواه برای یادآور روزانه با انتخابگر ساعت، پشتیبانی تا ۳ یادآور و فعال‌سازی مجدد پس از راه‌اندازی گوشی", fontSize = 9.sp, lineHeight = 14.sp)
                             }
                         }
 

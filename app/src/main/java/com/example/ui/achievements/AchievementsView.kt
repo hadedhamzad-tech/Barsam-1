@@ -7,8 +7,10 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -33,7 +35,8 @@ import com.example.util.PersianUtils
 @Composable
 fun AchievementsView(
     achievements: List<AchievementEntity>,
-    userProgress: UserProgressEntity?
+    userProgress: UserProgressEntity?,
+    listState: LazyListState = rememberLazyListState()
 ) {
     val progress = userProgress ?: UserProgressEntity()
     var selectedCategory by remember { mutableStateOf("همه") }
@@ -73,9 +76,10 @@ fun AchievementsView(
     val animatedProgress by animateFloatAsState(targetValue = progressFraction, label = "levelProgress")
 
     LazyColumn(
+        state = listState,
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.spacedBy(12.dp),
-        contentPadding = PaddingValues(bottom = 24.dp)
+        contentPadding = PaddingValues(top = 4.dp, bottom = 80.dp)
     ) {
         // Hero Student Level & Trophy Card
         item {

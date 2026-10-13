@@ -59,3 +59,24 @@ interface ProgressDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun saveUserProgress(progress: UserProgressEntity)
 }
+
+@Dao
+interface TopicDao {
+    @Query("SELECT * FROM topic_progress ORDER BY masteryPercentage DESC, totalAnswered DESC")
+    fun getAllTopicProgress(): Flow<List<TopicProgressEntity>>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertOrUpdateTopics(topics: List<TopicProgressEntity>)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertOrUpdateTopic(topic: TopicProgressEntity)
+
+    @Query("SELECT * FROM topic_progress WHERE topicId = :topicId LIMIT 1")
+    suspend fun getTopicById(topicId: String): TopicProgressEntity?
+
+    @Query("SELECT COUNT(*) FROM topic_progress")
+    suspend fun getTopicCount(): Int
+
+    @Query("DELETE FROM topic_progress")
+    suspend fun clearAllTopicProgress()
+}
