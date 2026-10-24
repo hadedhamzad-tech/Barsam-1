@@ -25,6 +25,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.data.PhysicsRepository
 import com.example.notification.NotificationSettingsDialog
 import com.example.ui.formulas.FormulaBookScreen
+import com.example.ui.glossary.GlossaryScreen
 import com.example.ui.quiz.QuizScreen
 import com.example.ui.simulations.SimulationsScreen
 import com.example.ui.solver.SolverScreen
@@ -59,6 +60,12 @@ sealed class NavigationTab(
         Icons.Default.MenuBook,
         Icons.Outlined.MenuBook
     )
+    object Glossary : NavigationTab(
+        "glossary",
+        "واژه‌نامه",
+        Icons.Filled.AutoStories,
+        Icons.Outlined.AutoStories
+    )
     object Quiz : NavigationTab(
         "quiz",
         "آزمون و کارنامه",
@@ -79,6 +86,7 @@ fun MainScreen(
             NavigationTab.Simulations,
             NavigationTab.Solver,
             NavigationTab.Formulas,
+            NavigationTab.Glossary,
             NavigationTab.Quiz
         )
     }
@@ -145,7 +153,7 @@ fun MainScreen(
                                         color = PhysicsCyan.copy(alpha = 0.2f)
                                     ) {
                                         Text(
-                                            "نسخه ۱٫۹",
+                                            "نسخه ۲٫۰",
                                             fontSize = 9.sp,
                                             fontWeight = FontWeight.Bold,
                                             color = PhysicsCyan,
@@ -221,6 +229,7 @@ fun MainScreen(
                         NavigationTab.Simulations,
                         NavigationTab.Solver,
                         NavigationTab.Formulas,
+                        NavigationTab.Glossary,
                         NavigationTab.Quiz
                     )
 
@@ -238,7 +247,7 @@ fun MainScreen(
                             label = {
                                 Text(
                                     tab.title,
-                                    fontSize = 11.sp,
+                                    fontSize = 10.sp,
                                     fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
                                 )
                             },
@@ -271,6 +280,7 @@ fun MainScreen(
                                 snackbarHostState = snackbarHostState
                             )
                             NavigationTab.Formulas -> FormulaBookScreen()
+                            NavigationTab.Glossary -> GlossaryScreen(repository = repository)
                             NavigationTab.Quiz -> QuizScreen(repository = repository)
                         }
                     }
@@ -333,6 +343,34 @@ fun MainScreen(
                             }
                         }
 
+                        // Changelog section for v2.0
+                        Surface(
+                            shape = RoundedCornerShape(10.dp),
+                            color = PhysicsPurple.copy(alpha = 0.12f),
+                            border = androidx.compose.foundation.BorderStroke(1.dp, PhysicsPurple.copy(alpha = 0.5f)),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Column(
+                                modifier = Modifier.padding(10.dp),
+                                verticalArrangement = Arrangement.spacedBy(4.dp)
+                            ) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Text("🚀", fontSize = 13.sp)
+                                    Spacer(modifier = Modifier.width(6.dp))
+                                    Text(
+                                        "تازه‌های نسخه بزرگ ۲٫۰:",
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 11.sp,
+                                        color = PhysicsPurple
+                                    )
+                                }
+                                Text("• واژه‌نامه تخصصی و جستجوپذیر فیزیک (Physics Glossary) مبتنی بر دیتابیس محلی Room با طبقه‌بندی پایه‌ها و موضوعات درسی", fontSize = 10.sp, lineHeight = 15.sp)
+                                Text("• هوش مصنوعی برسام فیزیک قدرت‌گرفته از مدل پیشرفته Gemini 3.5 Flash برای تحلیل مفهومی، تصویر ذهنی و نکات کنکوری اصطلاحات", fontSize = 10.sp, lineHeight = 15.sp)
+                                Text("• قابلیت پرسش آزاد از هوش مصنوعی پیرامون تمام مباحث و مفاهیم فیزیک متوسطه", fontSize = 10.sp, lineHeight = 15.sp)
+                                Text("• ارتقای پایدار دیتابیس به نسخه ۴ با مایگریشن بدون اتلاف و حفظ ۱۰۰٪ کلیه اطلاعات، امتیازات و کارنامه‌های قبلی", fontSize = 10.sp, lineHeight = 15.sp)
+                            }
+                        }
+
                         // Changelog section for v1.9
                         Surface(
                             shape = RoundedCornerShape(10.dp),
@@ -348,16 +386,16 @@ fun MainScreen(
                                     Text("🎯", fontSize = 13.sp)
                                     Spacer(modifier = Modifier.width(6.dp))
                                     Text(
-                                        "تازه‌های نسخه جدید ۱٫۹:",
+                                        "پیشینه تغییرات نسخه ۱٫۹:",
                                         fontWeight = FontWeight.Bold,
-                                        fontSize = 11.sp,
+                                        fontSize = 10.sp,
                                         color = PhysicsCyan
                                     )
                                 }
-                                Text("• حفظ پایدار وضعیت انتخاب‌شده در کارنامه (مرتب‌سازی رتبه تسلط/کتاب درسی و مبحث برگزیده) هنگام اسکرول و خروج از کادر با state hoisting و rememberSaveable", fontSize = 10.sp, lineHeight = 15.sp)
-                                Text("• حفظ تب فعال در صفحه آزمون و کارنامه و تثبیت دقیق موقعیت اسکرول فهرست‌ها با rememberLazyListState", fontSize = 10.sp, lineHeight = 15.sp)
-                                Text("• ماندگاری آزمون در حال انجام و سطح انتخابی هنگام جابه‌جایی موقت بین تب‌های پایینی برنامه", fontSize = 10.sp, lineHeight = 15.sp)
-                                Text("• حذف قطعی fallbackToDestructiveMigration و ثبت مایگریشن ساختاریافته چندنسخه‌ای جهت امنیت کامل داده‌های کاربر در دیتابیس Room هنگام ارتقا", fontSize = 10.sp, lineHeight = 15.sp)
+                                Text("• حفظ پایدار وضعیت انتخاب‌شده در کارنامه (مرتب‌سازی رتبه تسلط/کتاب درسی و مبحث برگزیده) هنگام اسکرول و خروج از کادر با state hoisting و rememberSaveable", fontSize = 9.sp, lineHeight = 14.sp)
+                                Text("• حفظ تب فعال در صفحه آزمون و کارنامه و تثبیت دقیق موقعیت اسکرول فهرست‌ها با rememberLazyListState", fontSize = 9.sp, lineHeight = 14.sp)
+                                Text("• ماندگاری آزمون در حال انجام و سطح انتخابی هنگام جابه‌جایی موقت بین تب‌های پایینی برنامه", fontSize = 9.sp, lineHeight = 14.sp)
+                                Text("• حذف قطعی fallbackToDestructiveMigration و ثبت مایگریشن ساختاریافته چندنسخه‌ای جهت امنیت کامل داده‌های کاربر در دیتابیس Room هنگام ارتقا", fontSize = 9.sp, lineHeight = 14.sp)
                             }
                         }
 

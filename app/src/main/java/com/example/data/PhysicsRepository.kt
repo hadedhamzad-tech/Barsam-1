@@ -8,13 +8,15 @@ class PhysicsRepository(
     private val quizDao: QuizDao,
     private val achievementDao: AchievementDao,
     private val progressDao: ProgressDao,
-    private val topicDao: TopicDao
+    private val topicDao: TopicDao,
+    private val glossaryDao: GlossaryDao
 ) {
     val savedProblems: Flow<List<SavedProblemEntity>> = problemDao.getAllSavedProblems()
     val quizScores: Flow<List<QuizScoreEntity>> = quizDao.getAllScores()
     val achievements: Flow<List<AchievementEntity>> = achievementDao.getAllAchievements()
     val userProgress: Flow<UserProgressEntity?> = progressDao.getUserProgress()
     val topicProgress: Flow<List<TopicProgressEntity>> = topicDao.getAllTopicProgress()
+    val glossaryTerms: Flow<List<GlossaryTermEntity>> = glossaryDao.getAllTerms()
 
     companion object {
         val DEFAULT_TOPICS = listOf(
@@ -375,6 +377,28 @@ class PhysicsRepository(
         )
         if (newTotal >= 200) {
             unlockAchievement("points_master")
+        }
+    }
+
+    fun searchGlossary(query: String): Flow<List<GlossaryTermEntity>> {
+        return if (query.isBlank()) glossaryDao.getAllTerms() else glossaryDao.searchTerms(query.trim())
+    }
+
+    fun getBookmarkedGlossaryTerms(): Flow<List<GlossaryTermEntity>> {
+        return glossaryDao.getBookmarkedTerms()
+    }
+
+    suspend fun toggleGlossaryBookmark(id: String, isBookmarked: Boolean) {
+        glossaryDao.updateBookmark(id, isBookmarked)
+    }
+
+    suspend fun updateGlossaryAiInsight(id: String, insight: String) {
+        glossaryDao.updateAiInsight(id, insight)
+    }
+
+    suspend fun ensureDefaultGlossaryTerms() {
+        if (glossaryDao.getTermCount() == 0) {
+            glossaryDao.insertOrUpdateTerms(GlossaryData.defaultTerms)
         }
     }
 }

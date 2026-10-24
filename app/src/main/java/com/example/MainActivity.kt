@@ -34,12 +34,14 @@ class MainActivity : ComponentActivity() {
             quizDao = database.quizDao(),
             achievementDao = database.achievementDao(),
             progressDao = database.progressDao(),
-            topicDao = database.topicDao()
+            topicDao = database.topicDao(),
+            glossaryDao = database.glossaryDao()
         )
 
         lifecycleScope.launch {
             repository.ensureDefaultAchievements()
             repository.ensureDefaultTopics()
+            repository.ensureDefaultGlossaryTerms()
         }
 
         setContent {

@@ -63,3 +63,19 @@ data class TopicProgressEntity(
     val lastUpdated: Long = System.currentTimeMillis()
 )
 
+@Entity(tableName = "physics_glossary")
+data class GlossaryTermEntity(
+    @PrimaryKey
+    val id: String,
+    val termFa: String,
+    val termEn: String,
+    val category: String,
+    val grade: String,
+    val definition: String,
+    val formula: String? = null,
+    val unit: String? = null,
+    val iconEmoji: String = "📖",
+    val isBookmarked: Boolean = false,
+    val aiInsight: String? = null
+)
+

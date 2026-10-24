@@ -80,3 +80,43 @@ interface TopicDao {
     @Query("DELETE FROM topic_progress")
     suspend fun clearAllTopicProgress()
 }
+
+@Dao
+interface GlossaryDao {
+    @Query("SELECT * FROM physics_glossary ORDER BY termFa ASC")
+    fun getAllTerms(): Flow<List<GlossaryTermEntity>>
+
+    @Query("""
+        SELECT * FROM physics_glossary 
+        WHERE termFa LIKE '%' || :query || '%' 
+           OR termEn LIKE '%' || :query || '%' 
+           OR definition LIKE '%' || :query || '%' 
+           OR category LIKE '%' || :query || '%'
+        ORDER BY termFa ASC
+    """)
+    fun searchTerms(query: String): Flow<List<GlossaryTermEntity>>
+
+    @Query("SELECT * FROM physics_glossary WHERE isBookmarked = 1 ORDER BY termFa ASC")
+    fun getBookmarkedTerms(): Flow<List<GlossaryTermEntity>>
+
+    @Query("SELECT * FROM physics_glossary WHERE id = :id LIMIT 1")
+    suspend fun getTermById(id: String): GlossaryTermEntity?
+
+    @Query("SELECT COUNT(*) FROM physics_glossary")
+    suspend fun getTermCount(): Int
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertOrUpdateTerms(terms: List<GlossaryTermEntity>)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertOrUpdateTerm(term: GlossaryTermEntity)
+
+    @Query("UPDATE physics_glossary SET isBookmarked = :isBookmarked WHERE id = :id")
+    suspend fun updateBookmark(id: String, isBookmarked: Boolean)
+
+    @Query("UPDATE physics_glossary SET aiInsight = :aiInsight WHERE id = :id")
+    suspend fun updateAiInsight(id: String, aiInsight: String)
+
+    @Query("DELETE FROM physics_glossary")
+    suspend fun clearAllTerms()
+}

@@ -13,9 +13,10 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         QuizScoreEntity::class,
         AchievementEntity::class,
         UserProgressEntity::class,
-        TopicProgressEntity::class
+        TopicProgressEntity::class,
+        GlossaryTermEntity::class
     ],
-    version = 3,
+    version = 4,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -24,6 +25,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun achievementDao(): AchievementDao
     abstract fun progressDao(): ProgressDao
     abstract fun topicDao(): TopicDao
+    abstract fun glossaryDao(): GlossaryDao
 
     companion object {
         @Volatile
@@ -89,6 +91,44 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        val MIGRATION_3_4 = object : Migration(3, 4) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    """
+                    CREATE TABLE IF NOT EXISTS `physics_glossary` (
+                        `id` TEXT NOT NULL,
+                        `termFa` TEXT NOT NULL,
+                        `termEn` TEXT NOT NULL,
+                        `category` TEXT NOT NULL,
+                        `grade` TEXT NOT NULL,
+                        `definition` TEXT NOT NULL,
+                        `formula` TEXT,
+                        `unit` TEXT,
+                        `iconEmoji` TEXT NOT NULL DEFAULT '📖',
+                        `isBookmarked` INTEGER NOT NULL DEFAULT 0,
+                        `aiInsight` TEXT,
+                        PRIMARY KEY(`id`)
+                    )
+                    """.trimIndent()
+                )
+            }
+        }
+
+        val MIGRATION_2_4 = object : Migration(2, 4) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                MIGRATION_2_3.migrate(db)
+                MIGRATION_3_4.migrate(db)
+            }
+        }
+
+        val MIGRATION_1_4 = object : Migration(1, 4) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                MIGRATION_1_2.migrate(db)
+                MIGRATION_2_3.migrate(db)
+                MIGRATION_3_4.migrate(db)
+            }
+        }
+
         fun getDatabase(context: Context): AppDatabase {
             return INSTANCE ?: synchronized(this) {
                 val instance = Room.databaseBuilder(
@@ -96,7 +136,14 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "physics_lab_db"
                 )
-                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_1_3)
+                    .addMigrations(
+                        MIGRATION_1_2,
+                        MIGRATION_2_3,
+                        MIGRATION_1_3,
+                        MIGRATION_3_4,
+                        MIGRATION_2_4,
+                        MIGRATION_1_4
+                    )
                     .fallbackToDestructiveMigrationOnDowngrade()
                     .build()
                 INSTANCE = instance

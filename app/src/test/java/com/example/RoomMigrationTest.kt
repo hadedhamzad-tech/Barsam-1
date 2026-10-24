@@ -7,6 +7,7 @@ import android.database.sqlite.SQLiteOpenHelper
 import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import com.example.data.AppDatabase
+import com.example.data.GlossaryTermEntity
 import com.example.data.TopicProgressEntity
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
@@ -195,9 +196,16 @@ class RoomMigrationTest {
         v2Db.close()
         v2Helper.close()
 
-        // 2. Open with Room AppDatabase using MIGRATION_2_3 to upgrade to v3
+        // 2. Open with Room AppDatabase using migrations to upgrade to v4
         val roomDb = Room.databaseBuilder(context, AppDatabase::class.java, dbName)
-            .addMigrations(AppDatabase.MIGRATION_1_2, AppDatabase.MIGRATION_2_3, AppDatabase.MIGRATION_1_3)
+            .addMigrations(
+                AppDatabase.MIGRATION_1_2,
+                AppDatabase.MIGRATION_2_3,
+                AppDatabase.MIGRATION_1_3,
+                AppDatabase.MIGRATION_3_4,
+                AppDatabase.MIGRATION_2_4,
+                AppDatabase.MIGRATION_1_4
+            )
             .fallbackToDestructiveMigrationOnDowngrade()
             .build()
 
@@ -227,11 +235,10 @@ class RoomMigrationTest {
             assertEquals(350, userProgress?.totalPoints)
             assertEquals("استاد آزمایشگاه فیزیک", userProgress?.levelTitle)
 
-            // 4. Verify that the new topic_progress table exists and is fully functional
+            // 4. Verify that the topic_progress table exists and is fully functional
             val topicProgressList = roomDb.topicDao().getAllTopicProgress().first()
             assertEquals("topic_progress table should initially be empty or default", 0, topicProgressList.size)
 
-            // Insert new topic progress to ensure schema is fully writeable
             val newProgress = TopicProgressEntity(
                 topicId = "dynamics",
                 topicName = "دینامیک و قوانین نیوتون",
@@ -248,7 +255,25 @@ class RoomMigrationTest {
             assertEquals("dynamics", updatedTopicProgress[0].topicId)
             assertEquals(80, updatedTopicProgress[0].masteryPercentage)
 
-            println("MIGRATION TEST SUCCESS: All scores, achievements, problems, and progress preserved perfectly!")
+            // 5. Verify that the new physics_glossary table (v4) exists and is fully functional
+            val term = GlossaryTermEntity(
+                id = "momentum",
+                termFa = "تکانه",
+                termEn = "Linear Momentum",
+                category = "دینامیک",
+                grade = "دوازدهم",
+                definition = "حاصل‌ضرب جرم در سرعت جسم",
+                formula = "p = m v",
+                unit = "kg·m/s"
+            )
+            roomDb.glossaryDao().insertOrUpdateTerm(term)
+
+            val terms = roomDb.glossaryDao().getAllTerms().first()
+            assertEquals(1, terms.size)
+            assertEquals("تکانه", terms[0].termFa)
+            assertEquals("Linear Momentum", terms[0].termEn)
+
+            println("MIGRATION TEST SUCCESS: All scores, achievements, problems, progress, and glossary table verified!")
         } finally {
             roomDb.close()
             context.deleteDatabase(dbName)
@@ -277,9 +302,16 @@ class RoomMigrationTest {
         v1Db.close()
         v1Helper.close()
 
-        // 2. Open with Room using MIGRATION_1_3
+        // 2. Open with Room using migrations to v4
         val roomDb = Room.databaseBuilder(context, AppDatabase::class.java, dbName)
-            .addMigrations(AppDatabase.MIGRATION_1_2, AppDatabase.MIGRATION_2_3, AppDatabase.MIGRATION_1_3)
+            .addMigrations(
+                AppDatabase.MIGRATION_1_2,
+                AppDatabase.MIGRATION_2_3,
+                AppDatabase.MIGRATION_1_3,
+                AppDatabase.MIGRATION_3_4,
+                AppDatabase.MIGRATION_2_4,
+                AppDatabase.MIGRATION_1_4
+            )
             .fallbackToDestructiveMigrationOnDowngrade()
             .build()
 
